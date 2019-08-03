@@ -1,0 +1,25 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/a3823c5f-7c91-4412-877f-25c38dfd3825/ # 
+title: American Flights API
+
+type: AmericanFlight ! include exchange_modules/68ef9520-24e9-4cf2-b2f5-620025690913/training-american-flight-data-type/1.0.1/AmericanFlightDataType.raml
+/flights: 
+ get:
+  queryParameters:
+    destination:
+     required: false
+     enum:
+      - SFO
+      - LAX
+      - CLE
+  responses:
+   200:
+    body:
+     application/json:
+      type: AmericanFlight []
+      example: !include exchange_modules/68ef9520-24e9-4cf2-b2f5-620025690913/training-american-flights-example/1.0.1/AmericanFlightsExample.raml
+ post:
+
+/{ID}:
+ get:
+   

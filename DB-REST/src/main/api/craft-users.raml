@@ -1,0 +1,47 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/c9671ca6-940b-4a02-bcb3-c3cd0cc2b6c2/ # 
+version: v1
+title: craft software
+
+/users:
+  get:
+    description: get all users
+  post:
+    description: add user
+  /userid:
+    get:
+     description: find user
+     queryParameters:
+      id:
+        type: integer
+        description: id must be integer
+     responses:
+       200:     
+        body:
+          application/json:
+            example:
+              [{"id":1},{"first":"sami"},{"last":"A"},{"department":"craft"}]
+       400:
+        body:
+          application/json:
+            example:
+              {"message":"id doesn't exist"}
+    put:
+      description: update user
+      queryParameters:
+        id:
+          type: integer
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                {"message":"can not update it"}
+    delete:
+      description: delete user
+      queryParameters:
+        id:
+          type: integer
+      responses:
+        200:
+          description: user deleted
