@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:apikit-soap="http://www.mulesoft.org/schema/mule/apikit-soap" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/apikit-soap http://www.mulesoft.org/schema/mule/apikit-soap/current/mule-apikit-soap.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="7009" doc:name="HTTP Listener Configuration"/>
+    <apikit-soap:config name="APIkit_SOAP__Configuration" portName="CalculatorSoap12" serviceName="Calculator" wsdlUrl="calculator.wsdl" doc:name="APIkit SOAP: Configuration"/>
+    <db:mysql-config name="MySQL_Configuration" host="localhost" port="3306" user="root" password="admin" database="mule" doc:name="MySQL Configuration"/>
+    <flow name="REST-testFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/get" allowedMethods="GET" doc:name="HTTP"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from employee]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="REST-testFlow1_PUT">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/put" allowedMethods="PUT" doc:name="HTTP"/>
+        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
+        <set-variable variableName="ID" value="#[payload.emplid]" doc:name="Variable-ID"/>
+        <db:update config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[update employee set emplname=#[payload.emplname],salary=#[payload.salary] where emplid=#[payload.emplid]]]></db:parameterized-query>
+        </db:update>
+        <set-payload value="employee #[flowVars.ID] has been updated successeful." doc:name="Set Payload"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="REST-Flow-POST">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/insert" allowedMethods="POST" doc:name="Copy_of_HTTP"/>
+        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="Copy_of_JSON to Object"/>
+        <set-variable variableName="ID" value="#[payload.emplid]" doc:name="Copy_of_Variable-ID"/>
+        <db:insert config-ref="MySQL_Configuration" doc:name="Copy_of_Database">
+            <db:parameterized-query><![CDATA[insert into employee values (#[payload.emplid],#[payload.emplname],#[payload.salary])]]></db:parameterized-query>
+        </db:insert>
+        <set-payload value="employee #[flowVars.ID] has been inserted successeful." doc:name="Copy_of_Set Payload"/>
+        <logger message="#[payload]" level="INFO" doc:name="Copy_of_Logger"/>
+    </flow>
+    <flow name="REST-Flow-DELETE">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/delete" allowedMethods="DELETE" doc:name="Copy_of_Copy_of_HTTP"/>
+        <set-variable variableName="ID" value="#[message.inboundProperties.'http.query.params'.get('emplid')]" doc:name="Copy_of_Copy_of_Variable-ID"/>
+        <db:delete config-ref="MySQL_Configuration" doc:name="Copy_of_Copy_of_Database">
+            <db:parameterized-query><![CDATA[delete from employee where emplid = #[flowVars.ID]]]></db:parameterized-query>
+        </db:delete>
+        <set-payload value="employee #[flowVars.ID] has been deleted successeful." doc:name="Copy_of_Copy_of_Set Payload"/>
+        <logger message="#[payload]" level="INFO" doc:name="Copy_of_Copy_of_Logger"/>
+    </flow>
+</mule>
